@@ -1,0 +1,23 @@
+name: Lint
+
+# Checks this repo's own workflows and scripts. Not reusable: consumers never call it.
+# Tool versions are pinned (exact) and run through uvx, so nothing is installed on the repo itself.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0  # provides uvx
+      - name: actionlint
+        run: uvx --from actionlint-py==1.7.12.25 actionlint
+      - name: shellcheck
+        run: uvx --from shellcheck-py==0.11.0.1 shellcheck -x scripts/*.sh
+      - name: Shared blocks are identical in every workflow
+        run: bash scripts/check_shared_blocks.sh
