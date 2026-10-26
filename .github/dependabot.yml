@@ -1,0 +1,9 @@
+# Keeps the third-party action pins inside this repo's workflows current. One PR updates an action in every
+# workflow file at once; scripts/check_shared_blocks.sh fails a PR that updates only some copies of a shared
+# block. The lint tool versions in scripts/lint.sh are not covered; bump them by hand at release.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

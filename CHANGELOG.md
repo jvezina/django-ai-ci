@@ -9,4 +9,6 @@ new major version.
 
 ## Unreleased
 
-- Repository scaffold: `lint` workflow (actionlint, shellcheck, shared-block drift check), README skeleton.
+- Repository scaffold: `scripts/lint.sh` (actionlint, shellcheck, shared-block checks with fixture tests) run by
+  the `lint` workflow, `.github/dependabot.yml` for the repo's own action pins, README with the shared-block
+  rules and the release checklist.
