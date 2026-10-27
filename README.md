@@ -11,7 +11,7 @@ Status: scaffold. No workflow is published yet.
 
 | Workflow | Purpose | Added |
 |---|---|---|
-| `reusable-semgrep.yml` | Semgrep scan; skips with a notice when `SEMGREP_APP_TOKEN` is unset | planned |
+| `reusable-semgrep.yml` | Semgrep scan; skips with a notice when `SEMGREP_APP_TOKEN` is unset. No inputs; secret `SEMGREP_APP_TOKEN` (optional); needs `contents: read` | unreleased |
 | `reusable-django-ci.yml` | `quality`, `test`, `test-postgres` | planned |
 | `reusable-mutation.yml` | nightly (incremental, cached) and weekly (clean full) mutation testing | planned |
 | `reusable-slow.yml` | long-running tests (`pytest -m slow`) | planned |

@@ -9,6 +9,9 @@ new major version.
 
 ## Unreleased
 
+- `reusable-semgrep.yml`: Semgrep scan in the `semgrep/semgrep:1.181.1` image; optional `SEMGREP_APP_TOKEN`
+  secret, skips with a notice when unset. No inputs.
+
 - Repository scaffold: `scripts/lint.sh` (actionlint, shellcheck, shared-block checks with fixture tests) run by
   the `lint` workflow, `.github/dependabot.yml` for the repo's own action pins, README with the shared-block
   rules and the release checklist.

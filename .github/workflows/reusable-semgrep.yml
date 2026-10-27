@@ -1,0 +1,27 @@
+name: Semgrep (reusable)
+
+# Semgrep scan. Skips with a notice when SEMGREP_APP_TOKEN is not available, so projects without a Semgrep
+# account stay green. The image tag is written literally and bumped by hand at release time (D20).
+on:
+  workflow_call:
+    secrets:
+      SEMGREP_APP_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: semgrep/ci
+    runs-on: ubuntu-latest
+    env:
+      SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+    container:
+      image: semgrep/semgrep:1.181.1
+    steps:
+      - uses: actions/checkout@v7
+      - if: env.SEMGREP_APP_TOKEN == ''
+        run: echo "::notice::SEMGREP_APP_TOKEN is not set; skipping Semgrep scan."
+      - if: env.SEMGREP_APP_TOKEN != ''
+        run: semgrep ci
