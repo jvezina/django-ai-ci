@@ -5,6 +5,8 @@ They own *how* a job runs (runners, tool setup, caches, service containers, repo
 *what* runs, in `scripts/ci/*.sh`. See `docs/ci.md` in a generated project for the ownership contract and the
 script contract.
 
+NOTE: this repo must stay public for project repos to be able to reference versions.
+
 Status: scaffold. No workflow is published yet.
 
 ## Workflows
