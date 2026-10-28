@@ -1,0 +1,167 @@
+name: Django CI (reusable)
+
+# The core CI tiers: quality, test and test-postgres. Each job checks the script contract, sets the project up
+# through scripts/ci/setup.sh, then runs one project-owned script. Job ids are public contract (README).
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: Python version for uv (must satisfy requires-python in the project)
+        type: string
+        default: "3.12"
+      node-version:
+        description: Node.js version (must satisfy engines in the project)
+        type: string
+        default: "26"
+      postgres-version:
+        description: PostgreSQL major version for the test-postgres service
+        type: string
+        default: "18"
+      run-postgres-tier:
+        description: Run the test-postgres job
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # BEGIN shared:contract
+      - name: Check the script contract version
+        run: |
+          expected=1
+          file=scripts/ci/CONTRACT_VERSION
+          if [[ ! -f "$file" ]]; then
+            echo "::error::$file is missing. Run: uvx copier update"
+            exit 2
+          fi
+          actual="$(tr -d '[:space:]' < "$file")"
+          if [[ ! "$actual" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::$file must hold one positive integer, found '$actual'. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual < expected )); then
+            echo "::error::This workflow needs script contract $expected, the project has $actual. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual > expected )); then
+            echo "::error::The project is at script contract $actual, newer than this workflow supports ($expected). Upgrade the django-ai-ci tag."
+            exit 2
+          fi
+      # END shared:contract
+      # BEGIN shared:setup
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          enable-cache: true
+          activate-environment: true
+          python-version: ${{ inputs.python-version }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: bash scripts/ci/setup.sh "${{ github.job }}"
+      # END shared:setup
+      - run: bash scripts/ci/quality.sh
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # BEGIN shared:contract
+      - name: Check the script contract version
+        run: |
+          expected=1
+          file=scripts/ci/CONTRACT_VERSION
+          if [[ ! -f "$file" ]]; then
+            echo "::error::$file is missing. Run: uvx copier update"
+            exit 2
+          fi
+          actual="$(tr -d '[:space:]' < "$file")"
+          if [[ ! "$actual" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::$file must hold one positive integer, found '$actual'. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual < expected )); then
+            echo "::error::This workflow needs script contract $expected, the project has $actual. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual > expected )); then
+            echo "::error::The project is at script contract $actual, newer than this workflow supports ($expected). Upgrade the django-ai-ci tag."
+            exit 2
+          fi
+      # END shared:contract
+      # BEGIN shared:setup
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          enable-cache: true
+          activate-environment: true
+          python-version: ${{ inputs.python-version }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: bash scripts/ci/setup.sh "${{ github.job }}"
+      # END shared:setup
+      - run: bash scripts/ci/test.sh
+
+  test-postgres:
+    if: inputs.run-postgres-tier
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ inputs.postgres-version }}
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci -d ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_PG_HOST: localhost
+      TEST_PG_USER: ci
+      TEST_PG_PASSWORD: ci-only
+      TEST_PG_NAME: ci
+    steps:
+      - uses: actions/checkout@v7
+      # BEGIN shared:contract
+      - name: Check the script contract version
+        run: |
+          expected=1
+          file=scripts/ci/CONTRACT_VERSION
+          if [[ ! -f "$file" ]]; then
+            echo "::error::$file is missing. Run: uvx copier update"
+            exit 2
+          fi
+          actual="$(tr -d '[:space:]' < "$file")"
+          if [[ ! "$actual" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::$file must hold one positive integer, found '$actual'. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual < expected )); then
+            echo "::error::This workflow needs script contract $expected, the project has $actual. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual > expected )); then
+            echo "::error::The project is at script contract $actual, newer than this workflow supports ($expected). Upgrade the django-ai-ci tag."
+            exit 2
+          fi
+      # END shared:contract
+      # BEGIN shared:setup
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          enable-cache: true
+          activate-environment: true
+          python-version: ${{ inputs.python-version }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: bash scripts/ci/setup.sh "${{ github.job }}"
+      # END shared:setup
+      - run: bash scripts/ci/test_postgres.sh

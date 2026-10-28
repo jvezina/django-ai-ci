@@ -9,6 +9,9 @@ new major version.
 
 ## Unreleased
 
+- `reusable-django-ci.yml`: jobs `quality`, `test`, `test-postgres`; inputs `python-version` (`3.12`),
+  `node-version` (`26`), `postgres-version` (`18`), `run-postgres-tier` (`true`). Needs script contract 1
+  (`scripts/ci/CONTRACT_VERSION`, `scripts/ci/setup.sh`).
 - `reusable-semgrep.yml`: Semgrep scan in the `semgrep/semgrep:1.181.1` image; optional `SEMGREP_APP_TOKEN`
   secret, skips with a notice when unset. No inputs.
 
