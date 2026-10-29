@@ -9,6 +9,9 @@ new major version.
 
 ## Unreleased
 
+- All workflows run on `ubuntu-24.04` instead of `ubuntu-latest`, so GitHub's move of the label to Ubuntu 26
+  cannot change the runner OS underneath a release.
+
 - `reusable-django-ci.yml`: jobs `quality`, `test`, `test-postgres`; inputs `python-version` (`3.12`),
   `node-version` (`26`), `postgres-version` (`18`), `run-postgres-tier` (`true`). Needs script contract 1
   (`scripts/ci/CONTRACT_VERSION`, `scripts/ci/setup.sh`).

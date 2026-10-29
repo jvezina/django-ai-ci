@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       # BEGIN shared:contract
@@ -68,7 +68,7 @@ jobs:
       - run: bash scripts/ci/quality.sh
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       # BEGIN shared:contract
@@ -110,7 +110,7 @@ jobs:
 
   test-postgres:
     if: inputs.run-postgres-tier
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:${{ inputs.postgres-version }}

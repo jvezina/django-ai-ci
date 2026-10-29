@@ -53,7 +53,9 @@ block) are allowlisted in the script. Edit all copies together.
 - **Inputs are public contract.** Add one only when a second project needs it. A project's own tools,
   services and packages go in the project (`scripts/ci/setup.local.sh`, its own scripts or workflow files),
   never here.
-- **Pins.** Third-party actions and the Semgrep image are pinned to exact versions, written literally.
+- **Pins.** Third-party actions, the Semgrep image and the runner image (`ubuntu-24.04`, never
+  `ubuntu-latest`) are pinned to exact versions, written literally. Moving to a newer Ubuntu is a deliberate
+  release: test it from a consumer first, and make it a minor version at least.
 - **Job ids.** The ids `quality`, `test`, `test-postgres`, `mutation`, `slow` and `pre-release` are passed to
   projects' `setup.sh`/`setup.local.sh`. Renaming or removing one is a new major version; adding one is a minor.
 - **Test from a consumer.** Open a draft PR in a consumer that points `uses:` at your branch
