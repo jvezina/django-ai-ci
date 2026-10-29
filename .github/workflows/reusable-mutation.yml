@@ -1,0 +1,106 @@
+name: Mutation testing (reusable)
+
+# Mutation testing with mutmut. mode "nightly" is the incremental run on the cached mutants/; mode "weekly" is the
+# clean full pass that refreshes that cache. The job id (`mutation`) is public contract: it is the tier passed to
+# scripts/ci/setup.sh (README).
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: nightly (incremental, cached) or weekly (clean full pass)
+        type: string
+        required: true
+      python-version:
+        description: Python version for uv (must satisfy requires-python in the project)
+        type: string
+        default: "3.12"
+      node-version:
+        description: Node.js version (must satisfy engines in the project)
+        type: string
+        default: "26"
+      strict:
+        description: Weekly only. Fail the run on any surviving mutant instead of only reporting them
+        type: boolean
+        default: false
+      timeout-minutes:
+        description: Job timeout; a template change makes a nightly run a full run
+        type: number
+        default: 300
+
+permissions:
+  contents: read
+
+jobs:
+  mutation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    concurrency:
+      group: mutation-cache
+      cancel-in-progress: false
+    env:
+      MODE: ${{ inputs.mode }}
+      MUTMUT_WEEKLY_STRICT: ${{ inputs.strict && '1' || '0' }}
+    steps:
+      - name: Check the mode
+        run: |
+          if [[ "$MODE" != "nightly" && "$MODE" != "weekly" ]]; then
+            echo "::error::mode must be 'nightly' or 'weekly', got '$MODE'."
+            exit 2
+          fi
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # mutmut diffs against the commit of its last full run
+      # Nightly uses the whole cache; weekly only reads the survivor baseline (the script clears the rest).
+      - uses: actions/cache/restore@v6
+        with:
+          path: mutants
+          key: mutmut-mutants-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: mutmut-mutants-${{ runner.os }}-
+      # BEGIN shared:contract
+      - name: Check the script contract version
+        run: |
+          expected=1
+          file=scripts/ci/CONTRACT_VERSION
+          if [[ ! -f "$file" ]]; then
+            echo "::error::$file is missing. Run: uvx copier update"
+            exit 2
+          fi
+          actual="$(tr -d '[:space:]' < "$file")"
+          if [[ ! "$actual" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::$file must hold one positive integer, found '$actual'. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual < expected )); then
+            echo "::error::This workflow needs script contract $expected, the project has $actual. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual > expected )); then
+            echo "::error::The project is at script contract $actual, newer than this workflow supports ($expected). Upgrade the django-ai-ci tag."
+            exit 2
+          fi
+      # END shared:contract
+      # BEGIN shared:setup
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          enable-cache: true
+          activate-environment: true
+          python-version: ${{ inputs.python-version }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: bash scripts/ci/setup.sh "${{ github.job }}"
+      # END shared:setup
+      - run: bash "scripts/ci/mutation_${MODE}.sh"
+      # Nightly: keep results (and the survivor baseline) even when the survivor gate fails.
+      - uses: actions/cache/save@v6
+        if: ${{ !cancelled() && inputs.mode == 'nightly' && hashFiles('mutants/mutmut-stats.json') != '' }}
+        with:
+          path: mutants
+          key: mutmut-mutants-${{ runner.os }}-${{ github.run_id }}
+      # Weekly: only a finished full pass replaces the cache; a crashed or timed-out run leaves the previous one.
+      - uses: actions/cache/save@v6
+        if: ${{ !cancelled() && inputs.mode == 'weekly' && hashFiles('mutants/full-run-complete') != '' }}
+        with:
+          path: mutants
+          key: mutmut-mutants-${{ runner.os }}-${{ github.run_id }}

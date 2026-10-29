@@ -15,9 +15,9 @@ Status: scaffold. No workflow is published yet.
 |---|---|---|
 | `reusable-semgrep.yml` | Semgrep scan; skips with a notice when `SEMGREP_APP_TOKEN` is unset. No inputs; secret `SEMGREP_APP_TOKEN` (optional); needs `contents: read` | unreleased |
 | `reusable-django-ci.yml` | `quality`, `test`, `test-postgres`. Inputs: `python-version`, `node-version`, `postgres-version`, `run-postgres-tier`; needs script contract 1 | unreleased |
-| `reusable-mutation.yml` | nightly (incremental, cached) and weekly (clean full) mutation testing | planned |
-| `reusable-slow.yml` | long-running tests (`pytest -m slow`) | planned |
-| `reusable-pre-release.yml` | full build and validation pass | planned |
+| `reusable-mutation.yml` | job `mutation`. Inputs: `mode` (`nightly`\|`weekly`, required), `strict` (weekly only), `python-version`, `node-version`, `timeout-minutes` (300); needs script contract 1 | unreleased |
+| `reusable-slow.yml` | job `slow`. Inputs: `python-version`, `node-version`, `timeout-minutes` (240); needs script contract 1 | unreleased |
+| `reusable-pre-release.yml` | job `pre-release`. Inputs: `python-version`, `node-version`, `postgres-version`; needs script contract 1 | unreleased |
 | `reusable-playwright.yml` | e2e against the project's test environment | planned |
 
 Inputs, secrets and permissions are documented per workflow here as each one lands.

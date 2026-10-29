@@ -9,6 +9,11 @@ new major version.
 
 ## Unreleased
 
+- `reusable-mutation.yml` (job `mutation`; `mode` nightly|weekly, `strict`, `python-version`, `node-version`,
+  `timeout-minutes`), `reusable-slow.yml` (job `slow`) and `reusable-pre-release.yml` (job `pre-release`, owns the
+  Postgres service and the Playwright browser install). Need script contract 1. The mutants cache key is unchanged
+  (`mutmut-mutants-<os>-<run id>`), so existing caches keep working.
+
 - All workflows run on `ubuntu-24.04` instead of `ubuntu-latest`, so GitHub's move of the label to Ubuntu 26
   cannot change the runner OS underneath a release.
 
