@@ -1,0 +1,65 @@
+name: Slow tests (reusable)
+
+# The long-running pytest tier (pytest -m slow), run nightly. The job id (`slow`) is public contract: it is the
+# tier passed to scripts/ci/setup.sh (README).
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: Python version for uv (must satisfy requires-python in the project)
+        type: string
+        default: "3.12"
+      node-version:
+        description: Node.js version (must satisfy engines in the project)
+        type: string
+        default: "26"
+      timeout-minutes:
+        description: Job timeout
+        type: number
+        default: 240
+
+permissions:
+  contents: read
+
+jobs:
+  slow:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/checkout@v7
+      # BEGIN shared:contract
+      - name: Check the script contract version
+        run: |
+          expected=1
+          file=scripts/ci/CONTRACT_VERSION
+          if [[ ! -f "$file" ]]; then
+            echo "::error::$file is missing. Run: uvx copier update"
+            exit 2
+          fi
+          actual="$(tr -d '[:space:]' < "$file")"
+          if [[ ! "$actual" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::$file must hold one positive integer, found '$actual'. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual < expected )); then
+            echo "::error::This workflow needs script contract $expected, the project has $actual. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual > expected )); then
+            echo "::error::The project is at script contract $actual, newer than this workflow supports ($expected). Upgrade the django-ai-ci tag."
+            exit 2
+          fi
+      # END shared:contract
+      # BEGIN shared:setup
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          enable-cache: true
+          activate-environment: true
+          python-version: ${{ inputs.python-version }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: bash scripts/ci/setup.sh "${{ github.job }}"
+      # END shared:setup
+      - run: bash scripts/ci/test_slow.sh
