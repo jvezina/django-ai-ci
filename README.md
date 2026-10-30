@@ -13,12 +13,12 @@ Status: scaffold. No workflow is published yet.
 
 | Workflow | Purpose | Added |
 |---|---|---|
-| `reusable-semgrep.yml` | Semgrep scan; skips with a notice when `SEMGREP_APP_TOKEN` is unset. No inputs; secret `SEMGREP_APP_TOKEN` (optional); needs `contents: read` | unreleased |
-| `reusable-django-ci.yml` | `quality`, `test`, `test-postgres`. Inputs: `python-version`, `node-version`, `postgres-version`, `run-postgres-tier`; needs script contract 1 | unreleased |
-| `reusable-mutation.yml` | job `mutation`. Inputs: `mode` (`nightly`\|`weekly`, required), `strict` (weekly only), `python-version`, `node-version`, `timeout-minutes` (300); needs script contract 1 | unreleased |
-| `reusable-slow.yml` | job `slow`. Inputs: `python-version`, `node-version`, `timeout-minutes` (240); needs script contract 1 | unreleased |
-| `reusable-pre-release.yml` | job `pre-release`. Inputs: `python-version`, `node-version`, `postgres-version`; needs script contract 1 | unreleased |
-| `reusable-playwright.yml` | job `e2e`. Input: `timeout-minutes` (60). Runs `scripts/ci/e2e.sh`, uploads `playwright-report/` and `test-results/` (30 days), tears the stack down; needs Docker on the runner and script contract 1 | unreleased |
+| `reusable-semgrep.yml` | Semgrep scan; skips with a notice when `SEMGREP_APP_TOKEN` is unset. No inputs; secret `SEMGREP_APP_TOKEN` (optional); needs `contents: read` | v1.0.0 |
+| `reusable-django-ci.yml` | `quality`, `test`, `test-postgres`. Inputs: `python-version`, `node-version`, `postgres-version`, `run-postgres-tier`; needs script contract 1 | v1.0.0 |
+| `reusable-mutation.yml` | job `mutation`. Inputs: `mode` (`nightly`\|`weekly`, required), `strict` (weekly only), `python-version`, `node-version`, `timeout-minutes` (300); needs script contract 1 | v1.0.0 |
+| `reusable-slow.yml` | job `slow`. Inputs: `python-version`, `node-version`, `timeout-minutes` (240); needs script contract 1 | v1.0.0 |
+| `reusable-pre-release.yml` | job `pre-release`. Inputs: `python-version`, `node-version`, `postgres-version`; needs script contract 1 | v1.0.0 |
+| `reusable-playwright.yml` | job `e2e`. Input: `timeout-minutes` (60). Runs `scripts/ci/e2e.sh`, uploads `playwright-report/` and `test-results/` (30 days), tears the stack down; needs Docker on the runner and script contract 1 | v1.0.0 |
 
 Inputs, secrets and permissions are documented per workflow here as each one lands.
 

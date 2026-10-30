@@ -9,6 +9,14 @@ new major version.
 
 ## Unreleased
 
+## v1.0.0 (2026-10-30)
+
+First release. Needs script contract 1 (`scripts/ci/CONTRACT_VERSION`, `scripts/ci/setup.sh`). Workflows:
+`reusable-django-ci.yml`, `reusable-semgrep.yml`, `reusable-mutation.yml`, `reusable-slow.yml`,
+`reusable-pre-release.yml`, `reusable-playwright.yml`. Job ids `quality`, `test`, `test-postgres`, `mutation`,
+`slow`, `pre-release` and `e2e` are public contract. Tool pins checked: `actionlint-py` 1.7.12.25,
+`shellcheck-py` 0.11.0.1.
+
 - `reusable-playwright.yml` (job `e2e`; input `timeout-minutes`): runs `scripts/ci/e2e.sh`, uploads the report,
   tears the stack down on exit. No tool setup. Needs script contract 1.
 
