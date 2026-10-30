@@ -18,7 +18,7 @@ Status: scaffold. No workflow is published yet.
 | `reusable-mutation.yml` | job `mutation`. Inputs: `mode` (`nightly`\|`weekly`, required), `strict` (weekly only), `python-version`, `node-version`, `timeout-minutes` (300); needs script contract 1 | unreleased |
 | `reusable-slow.yml` | job `slow`. Inputs: `python-version`, `node-version`, `timeout-minutes` (240); needs script contract 1 | unreleased |
 | `reusable-pre-release.yml` | job `pre-release`. Inputs: `python-version`, `node-version`, `postgres-version`; needs script contract 1 | unreleased |
-| `reusable-playwright.yml` | e2e against the project's test environment | planned |
+| `reusable-playwright.yml` | job `e2e`. Input: `timeout-minutes` (60). Runs `scripts/ci/e2e.sh`, uploads `playwright-report/` and `test-results/` (30 days), tears the stack down; needs Docker on the runner and script contract 1 | unreleased |
 
 Inputs, secrets and permissions are documented per workflow here as each one lands.
 

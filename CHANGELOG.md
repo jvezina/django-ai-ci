@@ -9,6 +9,9 @@ new major version.
 
 ## Unreleased
 
+- `reusable-playwright.yml` (job `e2e`; input `timeout-minutes`): runs `scripts/ci/e2e.sh`, uploads the report,
+  tears the stack down on exit. No tool setup. Needs script contract 1.
+
 - `reusable-mutation.yml` (job `mutation`; `mode` nightly|weekly, `strict`, `python-version`, `node-version`,
   `timeout-minutes`), `reusable-slow.yml` (job `slow`) and `reusable-pre-release.yml` (job `pre-release`, owns the
   Postgres service and the Playwright browser install). Need script contract 1. The mutants cache key is unchanged

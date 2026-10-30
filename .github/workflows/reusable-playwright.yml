@@ -1,0 +1,61 @@
+name: Playwright (reusable)
+
+# e2e against the project's test environment (compose.test.yml + .envs/test.env), run by scripts/ci/e2e.sh. The
+# stack runs in Docker, so there is no tool setup (no shared:setup block). This file adds the report upload and
+# a teardown safety net. The job id (`e2e`) is public contract.
+on:
+  workflow_call:
+    inputs:
+      timeout-minutes:
+        description: Job timeout
+        type: number
+        default: 60
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - uses: actions/checkout@v7
+      # BEGIN shared:contract
+      - name: Check the script contract version
+        run: |
+          expected=1
+          file=scripts/ci/CONTRACT_VERSION
+          if [[ ! -f "$file" ]]; then
+            echo "::error::$file is missing. Run: uvx copier update"
+            exit 2
+          fi
+          actual="$(tr -d '[:space:]' < "$file")"
+          if [[ ! "$actual" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::$file must hold one positive integer, found '$actual'. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual < expected )); then
+            echo "::error::This workflow needs script contract $expected, the project has $actual. Run: uvx copier update"
+            exit 2
+          fi
+          if (( actual > expected )); then
+            echo "::error::The project is at script contract $actual, newer than this workflow supports ($expected). Upgrade the django-ai-ci tag."
+            exit 2
+          fi
+      # END shared:contract
+      - name: Run e2e against the test environment
+        run: bash scripts/ci/e2e.sh
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Stop the test environment (safety net)
+        if: always()
+        run: bash scripts/ci/e2e.sh down
