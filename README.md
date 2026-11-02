@@ -7,7 +7,7 @@ script contract.
 
 NOTE: this repo must stay public for project repos to be able to reference versions.
 
-Status: scaffold. No workflow is published yet.
+Current release: **v1.0.0** (script contract 1). Per-version changes and upgrade notes: [CHANGELOG.md](CHANGELOG.md).
 
 ## Workflows
 
@@ -20,7 +20,68 @@ Status: scaffold. No workflow is published yet.
 | `reusable-pre-release.yml` | job `pre-release`. Inputs: `python-version`, `node-version`, `postgres-version`; needs script contract 1 | v1.0.0 |
 | `reusable-playwright.yml` | job `e2e`. Input: `timeout-minutes` (60). Runs `scripts/ci/e2e.sh`, uploads `playwright-report/` and `test-results/` (30 days), tears the stack down; needs Docker on the runner and script contract 1 | v1.0.0 |
 
-Inputs, secrets and permissions are documented per workflow here as each one lands.
+## Reference
+
+All workflows run on `ubuntu-24.04`, are called with `uses: jvezina/django-ai-ci/.github/workflows/<file>@vX.Y.Z`, and
+need only `permissions: contents: read` from the caller (a called workflow can keep or reduce the caller's
+permissions, never raise them). Every workflow except Semgrep first checks the project's script contract (see
+"Shared blocks"). Versions are strings (`"3.12"`); `—` means none.
+
+| Workflow (job id) | Inputs (type, default) | Secrets | Project scripts it runs |
+|---|---|---|---|
+| `reusable-django-ci.yml` (`quality`, `test`, `test-postgres`) | `python-version` (string, `"3.12"`), `node-version` (string, `"26"`), `postgres-version` (string, `"18"`), `run-postgres-tier` (boolean, `true`) | — | `quality.sh`, `test.sh`, `test_postgres.sh` (`TEST_PG_*` set for the service container) |
+| `reusable-mutation.yml` (`mutation`) | `mode` (string, **required**: `nightly` or `weekly`), `python-version`, `node-version`, `strict` (boolean, `false`; weekly only), `timeout-minutes` (number, `300`) | — | `mutation_nightly.sh` / `mutation_weekly.sh`; restores and saves the `mutants/` cache |
+| `reusable-slow.yml` (`slow`) | `python-version`, `node-version`, `timeout-minutes` (number, `240`) | — | `test_slow.sh` |
+| `reusable-pre-release.yml` (`pre-release`) | `python-version`, `node-version`, `postgres-version` | — | `pre_release.sh` (installs the Playwright browsers first) |
+| `reusable-playwright.yml` (`e2e`) | `timeout-minutes` (number, `60`) | — | `e2e.sh`; uploads `playwright-report/` and `test-results/` for 30 days, tears the stack down |
+| `reusable-semgrep.yml` (`semgrep`) | — | `SEMGREP_APP_TOKEN` (optional; the scan is skipped with a notice when unset) | — |
+
+`secrets: inherit` in the caller is enough for the Semgrep token.
+
+### Minimal callers
+
+Pushes and pull requests (`.github/workflows/ci.yml`):
+
+```yaml
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  ci:
+    uses: jvezina/django-ai-ci/.github/workflows/reusable-django-ci.yml@v1.0.0
+```
+
+Scheduled work stays in the caller, with `schedule:` and `workflow_dispatch:` there:
+
+```yaml
+name: Weekly
+on:
+  schedule:
+    - cron: "0 6 * * 0"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  e2e:
+    uses: jvezina/django-ai-ci/.github/workflows/reusable-playwright.yml@v1.0.0
+  mutation-full:
+    uses: jvezina/django-ai-ci/.github/workflows/reusable-mutation.yml@v1.0.0
+    with:
+      mode: weekly
+      strict: false   # true once the existing survivors are triaged
+```
+
+The nightly caller adds a `changes` job (the project's `nightly_changes.sh`) and gates `e2e`, `mutation` and
+`slow` on its outputs; copy `nightly.yml` from the template rather than writing it by hand.
+
+### Testing a change from a consumer
+
+Do not tag first. In a project (or the canary) on a branch, point each `uses:` at the branch
+(`…/reusable-django-ci.yml@my-branch`), open a draft PR, and tag only when every check is green. For a scheduled
+workflow, start it with `workflow_dispatch` on the branch (dispatch uses the branch's copy of the file).
 
 ## Calling a workflow
 
@@ -120,6 +181,20 @@ Work in a project branch. Dependabot normally opens this change as a pull reques
 7. **Merge.** The project is now on the new version.
 8. **Roll back** if a problem shows up after merging: revert the merge commit, or set the pins back to the
    previous tag. Old tags stay available.
+
+## Upgrade guide
+
+Each major version lists what a project must change. The project-side steps are in "Switching a project to a new
+version of the CI"; the contract version each major needs is in the CHANGELOG.
+
+| From → to | Script contract | What the project does |
+|---|---|---|
+| (none) → v1.x | 1 | Generated projects already have `scripts/ci/CONTRACT_VERSION` = 1, `scripts/ci/setup.sh` and the callers; nothing to do. Existing projects run `uvx copier update` once to get them. |
+| v1.x → v2.0.0 | to be stated | Written with the v2.0.0 release: a major version adds its row here and the same text to its CHANGELOG entry. |
+
+Minor and patch versions need no project change unless the CHANGELOG says so. Dependabot opens the PR for any
+new tag, and a contract mismatch fails fast with a message saying whether to run `copier update` or to
+use a newer or older tag.
 
 ## Local checks
 

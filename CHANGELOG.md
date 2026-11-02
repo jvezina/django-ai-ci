@@ -9,6 +9,8 @@ new major version.
 
 ## Unreleased
 
+- Docs only: README reference table (inputs, secrets, permissions, scripts), minimal callers and an upgrade guide.
+
 ## v1.0.0 (2026-10-30)
 
 First release. Needs script contract 1 (`scripts/ci/CONTRACT_VERSION`, `scripts/ci/setup.sh`). Workflows:
