@@ -54,7 +54,7 @@ jobs:
           fi
       # END shared:contract
       # BEGIN shared:setup
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           activate-environment: true
@@ -95,7 +95,7 @@ jobs:
           fi
       # END shared:contract
       # BEGIN shared:setup
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           activate-environment: true
@@ -153,7 +153,7 @@ jobs:
           fi
       # END shared:contract
       # BEGIN shared:setup
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           activate-environment: true

@@ -14,5 +14,5 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10.3.2  # provides uvx
+      - uses: astral-sh/setup-uv@v10.3.3  # provides uvx
       - run: bash scripts/lint.sh
